@@ -1,15 +1,18 @@
 import express from "express";
-import { Sentry } from "./config/sentry";
 import routes from "./routes/route";
+import sentryDashboard from "./routes/sentry";
+import { Sentry } from "./config/sentry";
 
 const app = express();
-
-Sentry.setupExpressErrorHandler(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/", routes);
+
+app.use("/dashboard", sentryDashboard);
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use(Sentry.expressErrorHandler());
 
@@ -20,11 +23,8 @@ app.use(
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    console.error("Unhandled Error:", err.message);
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    console.error("Error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 );
 
